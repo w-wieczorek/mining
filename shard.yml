@@ -1,0 +1,13 @@
+name: mining
+version: 0.1.0
+
+authors:
+  - your-name-here <your-email-here>
+
+targets:
+  mining:
+    main: src/mining.cr
+
+crystal: 1.1.1
+
+license: MIT
