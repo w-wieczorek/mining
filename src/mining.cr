@@ -63,7 +63,7 @@ module Mining
     end
     table
   end
-  
+
   def findAllDescriptors(tab : Table) : Hash(Descriptor, Int32)
     idx = 0
     dict = {} of Descriptor => Int32
@@ -77,7 +77,7 @@ module Mining
     end
     dict
   end
-  
+
   def encodeProblem(tab : Table, dict : Hash(Descriptor, Int32)) : UInt64
     ncols = dict.size
     lp = LibLpSolve.make_lp(0, ncols)
@@ -105,7 +105,7 @@ module Mining
     LibLpSolve.set_minim(lp)
     lp
   end
-  
+
   def findMinTestSet(tab : Table, dict : Hash(Descriptor, Int32)) : Set(Descriptor)
     lp = encodeProblem(tab, dict)
     LibLpSolve.solve(lp)
@@ -124,7 +124,61 @@ module Mining
     end
     result
   end
+
+  class Node
+    property descriptor : Descriptor?
+    property decision : String
+    property yes : Node?
+    property no : Node?
     
+    def initialize
+      @descriptor = nil
+      @decision = "?"
+      @yes = nil
+      @no = nil
+    end
+  end
+
+  private def theSameClass?(obs : Set(Int32), tab : Table)
+    return true if obs.empty?
+    d = tab[obs.first][0]
+    obs.each do |i|
+      return false if tab[i][0] != d
+    end
+    true
+  end
+
+  private def split(obs, tab, with descriptor)
+    yes_set = Set(Int32).new
+    no_set = Set(Int32).new
+    attr, val = descriptor
+    obs.each do |i|
+      if tab[i][attr] == val
+        yes_set.add i
+      else
+        no_set.add i
+      end
+    end
+    {yes_set, no_set}
+  end
+
+  private def findBestJudgment(obs, mts, tab)
+    
+  end
+
+  def buildTree(obs : Set(Int32), mts : Set(Descriptor), tab : Table)
+    raise "The empty set of obs" if obs.empty?
+    node = Node.new
+    if theSameClass?(obs, tab)
+      node.decision = tab[obs.first][0]
+    else
+      node.descriptor, yes_set, no_set = findBestJudgment(obs, mts, tab)
+      node.yes = buildTree(yes_set, mts, tab)
+      node.no = buildTree(no_set, mts, tab)
+    end
+    node
+  end
+
   class Ga
     getter population : Array(Array(Int32))
     getter pop_size : Int32
@@ -147,7 +201,7 @@ module Mining
       @tournament_size = 3
       @n_iterations = 200
     end
-  
+
     private def reservoirSample(s, r, k)
       # fill the reservoir array
       (0...k).each { |i| r[i] = i }
@@ -166,7 +220,7 @@ module Mining
       end
       return true
     end
-    
+
     private def idx_for(x, arr)
       arr.each_with_index do |y, i|
         return i if x == y
@@ -174,7 +228,7 @@ module Mining
       raise "#{x} not found in #{arr}"
       0
     end
-    
+
     def pmx(arr1 : Array(Int32), arr2 : Array(Int32), arr3 : Array(Int32), test = false)
       n = arr1.size
       point = StaticArray[0, 0]
@@ -200,7 +254,7 @@ module Mining
         arr3[i] = arr2[i] if arr3[i] == -1
       end
     end
-    
+
     def run
       error = @population.map { |arr| @fitness_fun.call(arr) }
       best_idx = (0...@pop_size).min_by { |i| error[i] }
