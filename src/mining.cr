@@ -49,9 +49,7 @@ module Mining
   PRESOLVED     =  9
   ACCURACYERROR = 25
 
-  alias Attribute = Int32
-  alias Value = String
-  alias Descriptor = Tuple(Attribute, Value)
+  alias Descriptor = Tuple(Int32, String)
   alias Table = Array(Array(String))
   
   def loadTable(filename : String)
@@ -126,16 +124,27 @@ module Mining
   end
 
   class Node
-    property descriptor : Descriptor?
+    property question : Descriptor?
     property decision : String
     property yes : Node?
     property no : Node?
     
     def initialize
-      @descriptor = nil
+      @question = nil
       @decision = "?"
       @yes = nil
       @no = nil
+    end
+    
+    def display(level = 0)
+      print " "*level
+      unless @question.nil? 
+        puts "#{@question.as(Descriptor)[0]}=#{@question.as(Descriptor)[1]}?"
+        yes.as(Node).display(level + 1)
+        no.as(Node).display(level + 1)
+      else
+        puts @decision
+      end
     end
   end
 
@@ -163,7 +172,19 @@ module Mining
   end
 
   private def findBestJudgment(obs, mts, tab)
-    
+    best_descriptor = mts.first
+    best_split = split(obs, tab, best_descriptor)
+    best_difference = (best_split[0].size - best_split[1].size).abs
+    mts.each do |d|
+      current_split = split(obs, tab, d)
+      current_difference = (current_split[0].size - current_split[1].size).abs
+      if current_difference < best_difference
+        best_difference = current_difference
+        best_split = current_split
+        best_descriptor = d
+      end
+    end
+    {best_descriptor, best_split[0], best_split[1]} 
   end
 
   def buildTree(obs : Set(Int32), mts : Set(Descriptor), tab : Table)
@@ -172,11 +193,24 @@ module Mining
     if theSameClass?(obs, tab)
       node.decision = tab[obs.first][0]
     else
-      node.descriptor, yes_set, no_set = findBestJudgment(obs, mts, tab)
+      node.question, yes_set, no_set = findBestJudgment(obs, mts, tab)
       node.yes = buildTree(yes_set, mts, tab)
       node.no = buildTree(no_set, mts, tab)
     end
     node
+  end
+
+  def classify(object : Hash(Int32, String), with tree) : String
+    node = tree
+    while node.question
+      attr, value = node.question.as(Descriptor)
+      if object.has_key?(attr)
+        node = object[attr] == value ? node.yes.as(Node) : node.no.as(Node)
+      else
+        return "?"
+      end
+    end
+    node.decision
   end
 
   class Ga

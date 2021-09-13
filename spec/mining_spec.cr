@@ -76,4 +76,29 @@ describe "Mining" do
     ga.run
     ga.best_error.should eq(668)
   end
+  
+  it "generates a decision tree" do
+    tab = Mining.loadTable("./spec/data2.csv")
+    dict = Mining.findAllDescriptors(tab)
+    mts = Mining.findMinTestSet(tab, dict)
+    root = Mining.buildTree((0...tab.size).to_set, mts, tab)
+    root.question.should eq({1, "0"})
+    root.yes.as(Mining::Node).decision.should eq("b")
+    root.no.as(Mining::Node).question.should eq({3, "0"})
+    root.no.as(Mining::Node).yes.as(Mining::Node).decision.should eq("b")
+    root.no.as(Mining::Node).no.as(Mining::Node).decision.should eq("a")
+  end
+
+  it "can classify new objects" do
+    tab = Mining.loadTable("./spec/agaricus-lepiota.data.csv")
+    dict = Mining.findAllDescriptors(tab)
+    mts = Mining.findMinTestSet(tab, dict)
+    root = Mining.buildTree((0...tab.size).to_set, mts, tab)
+    ob = {1 => "k", 2 => "y", 3 => "e", 4 => "f", 5 => "f", 6 => "f", 
+          7 => "c", 8 => "n", 9 => "b", 10 => "t", 12 => "s", 13 => "s",
+          14 => "p", 15 => "w", 16 => "p", 17 => "w", 18 => "o",
+          19 => "e", 20 => "w", 21 => "v", 22 => "p"}
+    result = Mining.classify ob, with: root
+    result.should eq("p")
+  end
 end
