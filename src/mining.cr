@@ -56,8 +56,9 @@ module Mining
     content = File.read(filename)
     table = [] of Array(String)
     csv = CSV.new(content, headers: false, strip: true) 
-    while csv.next 
-      table << csv.row.to_a
+    while csv.next
+      arr = csv.row.to_a 
+      table << arr.rotate!(arr.size - 1)
     end
     table
   end
@@ -211,110 +212,5 @@ module Mining
       end
     end
     node.decision
-  end
-
-  class Ga
-    getter population : Array(Array(Int32))
-    getter pop_size : Int32
-    getter genotype_len : Int32
-    getter best_individual : Array(Int32)
-    getter best_error : Float64
-    setter fitness_fun : Array(Int32) -> Float64
-    setter tournament_size : Int32
-    setter n_iterations : Int32
-    
-    # An individual is the permutation of [0, 1, ..., genotype_len - 1]
-    def initialize(@pop_size, @genotype_len)
-      raise "Population size have to be >= 3" if pop_size < 3
-      @population = Array(Array(Int32)).new(pop_size) do |i|
-        (0...genotype_len).to_a.shuffle!
-      end
-      @best_individual = (0...genotype_len).to_a
-      @best_error = Float64::INFINITY
-      @fitness_fun = ->(arr : Array(Int32)) { 0.0 }
-      @tournament_size = 3
-      @n_iterations = 200
-    end
-
-    private def reservoirSample(s, r, k)
-      # fill the reservoir array
-      (0...k).each { |i| r[i] = i }
-      # replace elements with gradually decreasing probability
-      (k..s).each do |i|
-        j = rand(i + 1)
-        if j < k
-          r[j] = i
-        end
-      end
-    end
-
-    private def not_in(x, arr, first, last)
-      (first..last).each do |i|
-        return false if arr[i] == x
-      end
-      return true
-    end
-
-    private def idx_for(x, arr)
-      arr.each_with_index do |y, i|
-        return i if x == y
-      end
-      raise "#{x} not found in #{arr}"
-      0
-    end
-
-    def pmx(arr1 : Array(Int32), arr2 : Array(Int32), arr3 : Array(Int32), test = false)
-      n = arr1.size
-      point = StaticArray[0, 0]
-      reservoirSample(n, point.to_unsafe, 2)
-      point[0], point[1] = point[1], point[0] if point[0] > point[1]
-      point[0], point[1] = 3, 8 if test
-      (0...point[0]).each { |i| arr3[i] = -1 }
-      (point[0]...point[1]).each { |i| arr3[i] = arr1[i] }
-      (point[1]...n).each { |i| arr3[i] = -1 }
-      (point[0]...point[1]).each do |k|
-        if not_in(arr2[k], arr1, point[0], point[1] - 1)
-          target_idx = idx_for(arr1[k], arr2) 
-          while target_idx >= point[0] && target_idx < point[1]
-            target_idx = idx_for(arr1[target_idx], arr2) 
-          end 
-          arr3[target_idx] = arr2[k]
-        end
-      end
-      (0...point[0]).each do |i|
-        arr3[i] = arr2[i] if arr3[i] == -1
-      end
-      (point[1]...n).each do |i|
-        arr3[i] = arr2[i] if arr3[i] == -1
-      end
-    end
-
-    def run
-      error = @population.map { |arr| @fitness_fun.call(arr) }
-      best_idx = (0...@pop_size).min_by { |i| error[i] }
-      @best_error = error[best_idx]
-      @best_individual[0, @genotype_len] = @population[best_idx]
-      iteration = 0
-      tournament = Array(Int32).new(@tournament_size, 0)
-      while iteration < @n_iterations && @best_error > 0
-        reservoirSample(@pop_size - 1, tournament, @tournament_size)
-        tournament.sort_by! { |idx| error[idx] }
-        parent1 = population[tournament[0]]
-        parent2 = population[tournament[1]]
-        child = population[tournament[-1]]
-        pmx(parent1, parent2, child)
-        if rand < 0.01
-          point = StaticArray[0, 0]
-          reservoirSample(@genotype_len - 1, point.to_unsafe, 2)
-          child.swap(point[0], point[1])
-        end
-        error[tournament[-1]] = @fitness_fun.call(child)
-        if error[tournament[-1]] < @best_error
-          @best_error = error[tournament[-1]]
-          @best_individual[0, @genotype_len] = @population[tournament[-1]]
-        end
-        iteration += 1
-      end
-    end
   end
 end

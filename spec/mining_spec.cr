@@ -28,7 +28,7 @@ describe "Mining" do
   it "loads decision table from csv file" do
     tab = Mining.loadTable("./spec/data.csv")
     tab.size.should eq(4)
-    tab[2].should eq(["Jeff Smith", "2018", "Prescott House", "17-D", "3.20"])
+    tab[2].should eq(["3.20", "Jeff Smith", "2018", "Prescott House", "17-D"])
   end
   
   it "finds all descriptors from a decision table" do
@@ -46,35 +46,6 @@ describe "Mining" do
     dict = Mining.findAllDescriptors(tab)
     result = Mining.findMinTestSet(tab, dict)
     result.should eq(Set{ {1, "e"}, {3, "f"}, {3, "g"} })
-  end
-  
-  it "implements GA with pmx operator" do
-    ga = Mining::Ga.new(3, 10)
-    ga.population[0][0, 10] = [8, 4, 7, 3, 6, 2, 5, 1, 9, 0]
-    ga.population[1][0, 10] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    ga.pmx(ga.population[0], ga.population[1], ga.population[2], true)
-    ga.population[2].should eq([0, 7, 4, 3, 6, 2, 5, 1, 8, 9])
-    ga.pmx(ga.population[0], ga.population[1], ga.population[2])
-    ga.population[2].sort.should eq([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-  end
-  
-  it "can use GA for solving TSP" do
-    dist = [[  0.0, 132.0, 217.0, 164.0,  58.0],
-            [132.0,   0.0, 290.0, 201.0,  79.0],
-            [217.0, 290.0,   0.0, 113.0, 303.0],
-            [164.0, 201.0, 113.0,   0.0, 196.0],
-            [ 58.0,  79.0, 303.0, 196.0,   0.0]]
-    ga = Mining::Ga.new(5, 5)
-    eval = ->(path : Array(Int32)) {
-      cost = 0.0
-      (0..4).each do |i|
-        cost += dist[path[i]][path[(i+1) % 5]]
-      end
-      cost
-    }
-    ga.fitness_fun = eval
-    ga.run
-    ga.best_error.should eq(668)
   end
   
   it "generates a decision tree" do
