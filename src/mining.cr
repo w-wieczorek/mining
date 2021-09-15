@@ -55,10 +55,16 @@ module Mining
   def loadTable(filename : String)
     content = File.read(filename)
     table = [] of Array(String)
+    row_set_without_decision = Set(Array(String)).new
     csv = CSV.new(content, headers: false, strip: true) 
     while csv.next
       arr = csv.row.to_a 
-      table << arr.rotate!(arr.size - 1)
+      # arr.rotate!(arr.size - 1)
+      if !row_set_without_decision.add(arr[1..])
+        puts "Already in table."
+      else
+        table << arr
+      end
     end
     table
   end

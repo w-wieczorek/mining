@@ -28,7 +28,7 @@ describe "Mining" do
   it "loads decision table from csv file" do
     tab = Mining.loadTable("./spec/data.csv")
     tab.size.should eq(4)
-    tab[2].should eq(["3.20", "Jeff Smith", "2018", "Prescott House", "17-D"])
+    tab[2].should eq(["Jeff Smith", "2018", "Prescott House", "17-D", "3.20"])
   end
   
   it "finds all descriptors from a decision table" do
