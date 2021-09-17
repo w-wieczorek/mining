@@ -20,6 +20,7 @@ lib LibGrb
   fun GRBgetdblattrarray(model : UInt64, attrname : UInt8*, first : Int32,
                          len : Int32, values : Float64*) : Int32
   fun GRBgeterrormsg(env : UInt64) : UInt8*
+  fun GRBwrite(model : UInt64, filename : UInt8*) : Int32
   fun GRBfreemodel(model : UInt64) : Int32
   fun GRBfreeenv(env : UInt64) : Void
 end
@@ -167,12 +168,20 @@ module Mining
   def loadTable(filename : String)
     content = File.read(filename)
     table = [] of Array(String)
-    row_set_without_decision = Set(Array(String)).new
-    csv = CSV.new(content, headers: false, strip: true) 
+    row_set_without_decision = Set(String).new
+    csv = CSV.new(content, headers: false, strip: true)
+    counter = 0
+    row_size = 0
     while csv.next
-      arr = csv.row.to_a 
+      arr = csv.row.to_a
+      if counter == 0
+        row_size = arr.size
+      else
+        raise "Row #{counter + 1}: different size." unless arr.size == row_size
+      end
+      counter += 1
       arr.rotate!(arr.size - 1)
-      if !row_set_without_decision.add(arr[1..])
+      if !row_set_without_decision.add?("#{arr[1..]}")
         puts "Already in table."
       else
         table << arr
@@ -256,6 +265,9 @@ module Mining
               numnz += 1
             end
           end
+          if numnz == 0
+            raise "Bad pair of rows: (#{i + 1}, #{j + 1})."
+          end
           error = LibGrb.GRBaddconstr(model, numnz, ind.to_unsafe, val.to_unsafe, GE, 1.0, "c#{cnum}")
           cnum += 1
           if error != 0
@@ -270,6 +282,9 @@ module Mining
 
   def findMinTestSet(tab : Table, dict : Hash(Descriptor, Int32)) : Set(Descriptor)
     env, model = encodeProblem(tab, dict)
+    # puts
+    # LibGrb.GRBwrite(model, "/run/shm/#{model}.lp")
+    # puts
     optimstatus = 0
     objval = 0.0
     # Optimize model
@@ -357,31 +372,27 @@ module Mining
     {yes_set, no_set}
   end
 
-  private def findBestJudgment(obs, mts, tab)
-    best_descriptor = mts.first
-    best_split = split(obs, tab, best_descriptor)
-    best_difference = (best_split[0].size - best_split[1].size).abs
-    mts.each do |d|
-      current_split = split(obs, tab, d)
-      current_difference = (current_split[0].size - current_split[1].size).abs
-      if current_difference < best_difference
-        best_difference = current_difference
-        best_split = current_split
-        best_descriptor = d
-      end
+  private def findFirstJudgment(obs, perm, tab, idx)
+    descriptor = perm[idx]
+    curr_split = split(obs, tab, descriptor)
+    idx += 1
+    while curr_split[0].size == 0 || curr_split[1].size == 0
+      descriptor = perm[idx]
+      curr_split = split(obs, tab, descriptor)
+      idx += 1
     end
-    {best_descriptor, best_split[0], best_split[1]} 
+    {descriptor, curr_split[0], curr_split[1], idx}
   end
 
-  def buildTree(obs : Set(Int32), mts : Set(Descriptor), tab : Table)
+  def buildTree(obs : Set(Int32), perm : Array(Descriptor), tab : Table, idx = 0)
     raise "The empty set of obs" if obs.empty?
     node = Node.new
     if theSameClass?(obs, tab)
       node.decision = tab[obs.first][0]
     else
-      node.question, yes_set, no_set = findBestJudgment(obs, mts, tab)
-      node.yes = buildTree(yes_set, mts, tab)
-      node.no = buildTree(no_set, mts, tab)
+      node.question, yes_set, no_set, idx = findFirstJudgment(obs, perm, tab, idx)
+      node.yes = buildTree(yes_set, perm, tab, idx)
+      node.no = buildTree(no_set, perm, tab, idx)
     end
     node
   end
