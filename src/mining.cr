@@ -372,27 +372,27 @@ module Mining
     {yes_set, no_set}
   end
 
-  private def findFirstJudgment(obs, perm, tab, idx)
-    descriptor = perm[idx]
+  private def findFirstJudgment(obs, perm, pi, tab, idx)
+    descriptor = perm[pi[idx]]
     curr_split = split(obs, tab, descriptor)
     idx += 1
     while curr_split[0].size == 0 || curr_split[1].size == 0
-      descriptor = perm[idx]
+      descriptor = perm[pi[idx]]
       curr_split = split(obs, tab, descriptor)
       idx += 1
     end
     {descriptor, curr_split[0], curr_split[1], idx}
   end
 
-  def buildTree(obs : Set(Int32), perm : Array(Descriptor), tab : Table, idx = 0)
+  def buildTree(obs : Set(Int32), perm : Array(Descriptor), pi : Array(Int32), tab : Table, idx = 0)
     raise "The empty set of obs" if obs.empty?
     node = Node.new
     if theSameClass?(obs, tab)
       node.decision = tab[obs.first][0]
     else
-      node.question, yes_set, no_set, idx = findFirstJudgment(obs, perm, tab, idx)
-      node.yes = buildTree(yes_set, perm, tab, idx)
-      node.no = buildTree(no_set, perm, tab, idx)
+      node.question, yes_set, no_set, idx = findFirstJudgment(obs, perm, pi, tab, idx)
+      node.yes = buildTree(yes_set, perm, pi, tab, idx)
+      node.no = buildTree(no_set, perm, pi, tab, idx)
     end
     node
   end
