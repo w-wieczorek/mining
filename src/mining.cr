@@ -158,6 +158,7 @@ module Mining
         error[tournament[-1]] = @fitness_fun.call(child)
         if error[tournament[-1]] < @best_error
           @best_error = error[tournament[-1]]
+          puts "Iteration #{iteration}, error = #{@best_error}"
           @best_individual[0, @genotype_len] = @population[tournament[-1]]
         end
         iteration += 1
@@ -421,9 +422,34 @@ module Mining
       error
     }
     ga.fitness_fun = eval
-    ga.n_iterations = 100*n
+    ga.n_iterations = 1000*n
     ga.run
     pi = ga.best_individual
     buildTree(all_obs, perm, pi, training)
+  end
+end
+
+files = Dir.new("./data").children
+databases = files.map{ |fname| /^((\w|-)+)_(tr|te|clean)\.data$/.match(fname).try &.[1] }.to_set
+databases.each do |name|
+  if name
+    puts "Database #{name}:"
+    training = Mining.loadTable("./data/#{name}_tr.data")
+    validation = Mining.loadTable("./data/#{name}_te.data")
+    testing = Mining.loadTable("./data/#{name}_clean.data")
+    dict = Mining.findAllDescriptors(training)
+    mts = Mining.findMinTestSet(training, dict)
+    tree = Mining.dTreeFromMTS(training, validation, mts)
+    confusion_matrix = {} of {String, String} => Int32  # actual, predicted
+    testing.each do |row|
+      predicted = Mining.classify row, with: tree
+      actual = row[0]
+      if confusion_matrix.has_key?({actual, predicted})
+        confusion_matrix[{actual, predicted}] += 1
+      else
+        confusion_matrix[{actual, predicted}] = 1
+      end
+    end
+    puts confusion_matrix
   end
 end
