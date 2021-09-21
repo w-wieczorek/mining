@@ -172,21 +172,29 @@ describe "Mining" do
     dict = Mining.findAllDescriptors(tab)
     mts = Mining.findMinTestSet(tab, dict)
     root = Mining.buildTree((0...tab.size).to_set, mts.to_a, (0...mts.size).to_a, tab)
-    ob = {1 => "k", 2 => "y", 3 => "e", 4 => "f", 5 => "f", 6 => "f", 
-          7 => "c", 8 => "n", 9 => "b", 10 => "t", 12 => "s", 13 => "s",
-          14 => "p", 15 => "w", 16 => "p", 17 => "w", 18 => "o",
-          19 => "e", 20 => "w", 21 => "v", 22 => "p"}
+    ob = ["p", "k", "y", "e", "f", "f", "f", "c", "n", "b", "t", "?", "s", "s",
+          "p", "w", "p", "w", "o", "e", "w", "v", "p"]
     result = Mining.classify ob, with: root
     result.should eq("p")
   end
 
-  it "generates a decision tree for breast" do
-    tab = Mining.loadTable("./spec/balance-scale_tr.csv")
-    dict = Mining.findAllDescriptors(tab)
-    mts = Mining.findMinTestSet(tab, dict)
-    root = Mining.buildTree((0...tab.size).to_set, mts.to_a, (0...mts.size).to_a.shuffle, tab)
-    puts 
-    root.display
-    puts
+  it "generates a decision tree for lymphography" do
+    training = Mining.loadTable("./spec/lymphography_tr.data")
+    validation = Mining.loadTable("./spec/lymphography_te.data")
+    testing = Mining.loadTable("./spec/lymphography_clean.data")
+    dict = Mining.findAllDescriptors(training)
+    mts = Mining.findMinTestSet(training, dict)
+    tree = Mining.dTreeFromMTS(training, validation, mts)
+    confusion_matrix = {} of {String, String} => Int32  # actual, predicted
+    testing.each do |row|
+      predicted = Mining.classify row, with: tree
+      actual = row[0]
+      if confusion_matrix.has_key?({actual, predicted})
+        confusion_matrix[{actual, predicted}] += 1
+      else
+        confusion_matrix[{actual, predicted}] = 1
+      end
+    end
+    puts confusion_matrix
   end
 end

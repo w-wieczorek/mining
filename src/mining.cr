@@ -397,16 +397,33 @@ module Mining
     node
   end
 
-  def classify(object : Hash(Int32, String), with tree) : String
+  def classify(object : Array(String), with tree) : String
     node = tree
     while node.question
       attr, value = node.question.as(Descriptor)
-      if object.has_key?(attr)
-        node = object[attr] == value ? node.yes.as(Node) : node.no.as(Node)
-      else
-        node = node.no.as(Node)
-      end
+      node = object[attr] == value ? node.yes.as(Node) : node.no.as(Node)
     end
     node.decision
+  end
+
+  def dTreeFromMTS(training : Table, validation : Table, mts : Set(Descriptor))
+    perm = mts.to_a
+    n = perm.size
+    all_obs = (0...training.size).to_set
+    ga = Ga.new(10*n, n)
+    eval = ->(pi : Array(Int32)) {
+      tree = buildTree(all_obs, perm, pi, training)
+      error = 0.0
+      validation.each do |row|
+        answer = classify row, with: tree
+        error += 1.0 if answer != row[0]
+      end
+      error
+    }
+    ga.fitness_fun = eval
+    ga.n_iterations = 100*n
+    ga.run
+    pi = ga.best_individual
+    buildTree(all_obs, perm, pi, training)
   end
 end
