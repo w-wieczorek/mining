@@ -74,7 +74,7 @@ module Mining
     def initialize(@pop_size, @genotype_len)
       raise "Population size have to be >= 3" if pop_size < 3
       @population = Array(Array(Int32)).new(pop_size) do |i|
-        (0...genotype_len).to_a.shuffle!
+        (0...genotype_len).to_a
       end
       @best_individual = (0...genotype_len).to_a
       @best_error = Float64::INFINITY
@@ -82,7 +82,13 @@ module Mining
       @tournament_size = 3
       @n_iterations = 200
     end
-  
+
+    private def shuffle_population
+      (0...@pop_size).each do |i|
+        @population[i].shuffle!
+      end
+    end
+
     private def reservoirSample(s, r, k)
       # fill the reservoir array
       (0...k).each { |i| r[i] = i }
@@ -137,6 +143,7 @@ module Mining
     end
   
     def run
+      shuffle_population
       error = @population.map { |arr| @fitness_fun.call(arr) }
       best_idx = (0...@pop_size).min_by { |i| error[i] }
       @best_error = error[best_idx]
@@ -411,7 +418,7 @@ module Mining
     perm = mts.to_a
     n = perm.size
     all_obs = (0...training.size).to_set
-    ga = Ga.new(10*n, n)
+    ga = Ga.new(2*n*Math.log(n).round.to_i, n)
     eval = ->(pi : Array(Int32)) {
       tree = buildTree(all_obs, perm, pi, training)
       error = 0.0
@@ -422,10 +429,17 @@ module Mining
       error
     }
     ga.fitness_fun = eval
-    ga.n_iterations = 1000*n
-    ga.run
-    pi = ga.best_individual
-    buildTree(all_obs, perm, pi, training)
+    ga.n_iterations = 500*n
+    min_error = Float64::INFINITY
+    best_perm = Array(Int32).new(n, 0)
+    30.times do
+      ga.run
+      if ga.best_error < min_error
+        min_error = ga.best_error
+        best_perm[0, n] = ga.best_individual
+      end
+    end
+    buildTree(all_obs, perm, best_perm, training)
   end
 end
 
