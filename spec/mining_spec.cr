@@ -197,4 +197,18 @@ describe "Mining" do
     end
     puts confusion_matrix
   end
+
+  it "serializes a decision tree" do
+    tab = Mining.loadTable("./spec/data2.csv")
+    dict = Mining.findAllDescriptors(tab)
+    mts = Mining.findMinTestSet(tab, dict)
+    root = Mining.buildTree((0...tab.size).to_set, mts.to_a, (0...mts.size).to_a, tab)
+    s = root.to_json
+    copy = Mining::Node.from_json(s)
+    copy.question.should eq({3, "0"})
+    copy.yes.as(Mining::Node).decision.should eq("b")
+    copy.no.as(Mining::Node).question.should eq({1, "1"})
+    copy.no.as(Mining::Node).yes.as(Mining::Node).decision.should eq("a")
+    copy.no.as(Mining::Node).no.as(Mining::Node).decision.should eq("b")
+  end
 end

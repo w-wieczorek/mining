@@ -26,6 +26,8 @@ lib LibGrb
 end
 
 require "csv"
+require "json"
+require "yaml"
 
 module Mining
   extend self
@@ -165,7 +167,6 @@ module Mining
         error[tournament[-1]] = @fitness_fun.call(child)
         if error[tournament[-1]] < @best_error
           @best_error = error[tournament[-1]]
-          puts "Iteration #{iteration}, error = #{@best_error}"
           @best_individual[0, @genotype_len] = @population[tournament[-1]]
         end
         iteration += 1
@@ -210,6 +211,16 @@ module Mining
       end
     end
     dict
+  end
+
+  # Assuming a decision as 0, 1, 2, ...
+  def findNumOfClases(tab : Table) : Int32
+    res = 0
+    tab.each do |row|
+      c_num = row[0].to_i
+      res = c_num if c_num > res
+    end
+    res + 1
   end
 
   def encodeProblem(tab : Table, dict : Hash(Descriptor, Int32))
@@ -333,6 +344,7 @@ module Mining
   end
 
   class Node
+    include JSON::Serializable
     property question : Descriptor?
     property decision : String
     property yes : Node?
@@ -353,6 +365,22 @@ module Mining
         no.as(Node).display(level + 1)
       else
         puts @decision
+      end
+    end
+
+    def size
+      unless @question.nil? 
+        1 + yes.as(Node).size + no.as(Node).size
+      else
+        1
+      end
+    end
+
+    def height
+      unless @question.nil? 
+        1 + Math.max(yes.as(Node).height, no.as(Node).height)
+      else
+        0
       end
     end
   end
@@ -452,18 +480,43 @@ databases.each do |name|
     validation = Mining.loadTable("./data/#{name}_te.data")
     testing = Mining.loadTable("./data/#{name}_clean.data")
     dict = Mining.findAllDescriptors(training)
-    mts = Mining.findMinTestSet(training, dict)
-    tree = Mining.dTreeFromMTS(training, validation, mts)
-    confusion_matrix = {} of {String, String} => Int32  # actual, predicted
-    testing.each do |row|
-      predicted = Mining.classify row, with: tree
-      actual = row[0]
-      if confusion_matrix.has_key?({actual, predicted})
-        confusion_matrix[{actual, predicted}] += 1
-      else
-        confusion_matrix[{actual, predicted}] = 1
-      end
+    num_of_clases = Mining.findNumOfClases(training)
+    num_of_clases_in_testing = Mining.findNumOfClases(testing)
+    if num_of_clases != num_of_clases_in_testing
+      raise "Database #{name}: different num of classes in tr and clean"
     end
-    puts confusion_matrix
+    mts = Set(Mining::Descriptor).new
+    elapsed_time_mts = Time.measure do
+      mts = Mining.findMinTestSet(training, dict)
+    end
+    (1..30).each do |iter_run|
+      puts "Iter run #{iter_run}"
+      tree = Mining::Node.new
+      elapsed_time_tree = Time.measure do
+        tree = Mining.dTreeFromMTS(training, validation, mts)
+      end
+      confusion_matrix = Array(Array(Int32)).new(num_of_clases) do |i| 
+        Array(Int32).new(num_of_clases, 0)
+      end
+      testing.each do |row|
+        predicted = Mining.classify row, with: tree
+        actual = row[0]
+        confusion_matrix[actual.to_i][predicted.to_i] += 1
+      end
+      fname = "mqs_" + name + "_run_" + iter_run.to_s
+      results = {
+        "method" => "MQS",
+        "database" => name,
+        "confusion matrix" => confusion_matrix,
+        "tree" => {
+          "size" => tree.size,
+          "height" => tree.height,
+          "serialization" => fname + "_tree.json" },
+        "time of experiment" => Time.utc.to_s,
+        "cpu time" => elapsed_time_mts.total_seconds + elapsed_time_tree.total_seconds
+      }
+      File.write(fname + "_results.yaml", results.to_yaml)
+      File.write(fname + "_tree.json", tree.to_json)
+    end
   end
 end
