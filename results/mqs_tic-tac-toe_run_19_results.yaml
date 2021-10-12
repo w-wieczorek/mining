@@ -1,0 +1,14 @@
+---
+method: MQS
+database: tic-tac-toe
+confusion matrix:
+- - 77
+  - 13
+- - 1
+  - 197
+tree:
+  size: 229
+  height: 9
+  serialization: mqs_tic-tac-toe_run_19_tree.json
+time of experiment: 2021-10-11 18:57:21 UTC
+cpu time: 24.460141872

@@ -1,0 +1,46 @@
+---
+method: MQS
+database: dermatology
+confusion matrix:
+- - 32
+  - 0
+  - 0
+  - 0
+  - 1
+  - 0
+- - 0
+  - 17
+  - 0
+  - 0
+  - 3
+  - 1
+- - 0
+  - 0
+  - 23
+  - 0
+  - 0
+  - 0
+- - 0
+  - 2
+  - 0
+  - 13
+  - 0
+  - 0
+- - 0
+  - 1
+  - 0
+  - 0
+  - 8
+  - 0
+- - 3
+  - 1
+  - 0
+  - 0
+  - 0
+  - 5
+tree:
+  size: 53
+  height: 9
+  serialization: mqs_dermatology_run_29_tree.json
+time of experiment: 2021-10-11 18:01:18 UTC
+cpu time: 26.398169837

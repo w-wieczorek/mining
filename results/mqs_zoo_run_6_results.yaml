@@ -1,0 +1,59 @@
+---
+method: MQS
+database: zoo
+confusion matrix:
+- - 5
+  - 0
+  - 0
+  - 1
+  - 1
+  - 0
+  - 0
+- - 0
+  - 5
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+- - 1
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+- - 0
+  - 0
+  - 0
+  - 5
+  - 0
+  - 0
+  - 0
+- - 0
+  - 0
+  - 0
+  - 0
+  - 1
+  - 0
+  - 0
+- - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 2
+  - 0
+- - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 4
+tree:
+  size: 19
+  height: 5
+  serialization: mqs_zoo_run_6_tree.json
+time of experiment: 2021-10-11 18:01:28 UTC
+cpu time: 0.48897026000000005

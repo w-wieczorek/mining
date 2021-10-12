@@ -1,0 +1,14 @@
+---
+method: MQS
+database: house-votes-84
+confusion matrix:
+- - 70
+  - 8
+- - 3
+  - 35
+tree:
+  size: 25
+  height: 6
+  serialization: mqs_house-votes-84_run_30_tree.json
+time of experiment: 2021-10-11 18:50:08 UTC
+cpu time: 2.526669262

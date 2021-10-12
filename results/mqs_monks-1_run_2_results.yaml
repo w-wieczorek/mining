@@ -1,0 +1,14 @@
+---
+method: MQS
+database: monks-1
+confusion matrix:
+- - 67
+  - 0
+- - 0
+  - 63
+tree:
+  size: 19
+  height: 5
+  serialization: mqs_monks-1_run_2_tree.json
+time of experiment: 2021-10-11 18:01:40 UTC
+cpu time: 0.069991975

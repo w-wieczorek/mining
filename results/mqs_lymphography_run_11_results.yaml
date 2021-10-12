@@ -1,0 +1,26 @@
+---
+method: MQS
+database: lymphography
+confusion matrix:
+- - 0
+  - 0
+  - 1
+  - 0
+- - 0
+  - 21
+  - 3
+  - 1
+- - 0
+  - 3
+  - 15
+  - 0
+- - 0
+  - 0
+  - 0
+  - 1
+tree:
+  size: 35
+  height: 6
+  serialization: mqs_lymphography_run_11_tree.json
+time of experiment: 2021-10-11 19:01:32 UTC
+cpu time: 1.1896674919999999

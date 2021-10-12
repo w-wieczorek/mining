@@ -1,0 +1,14 @@
+---
+method: MQS
+database: breast-cancer-wisconsin
+confusion matrix:
+- - 80
+  - 6
+- - 14
+  - 69
+tree:
+  size: 53
+  height: 8
+  serialization: mqs_breast-cancer-wisconsin_run_8_tree.json
+time of experiment: 2021-10-11 18:08:13 UTC
+cpu time: 11.517559063

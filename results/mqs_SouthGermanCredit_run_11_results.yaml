@@ -1,0 +1,14 @@
+---
+method: MQS
+database: SouthGermanCredit
+confusion matrix:
+- - 28
+  - 65
+- - 49
+  - 158
+tree:
+  size: 445
+  height: 13
+  serialization: mqs_SouthGermanCredit_run_11_tree.json
+time of experiment: 2021-10-11 18:33:12 UTC
+cpu time: 713.690238447
