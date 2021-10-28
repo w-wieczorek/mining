@@ -1,6 +1,6 @@
 # mining
 
-This is the implementation of an algorithm for the genaration of dicision
+This is the implementation of an algorithm for the genaration of decision
 trees from csv databases.  Please read and cite the following article:
 
 W. Wieczorek et al.: Minimum query set for decision tree construction, 2022.
@@ -15,7 +15,7 @@ tested the program under [Ubuntu 20.04.3 LTS](https://ubuntu.com/) operating sys
 ## Installation and usage
 
 1. Install the LP solver as descibed on the
-   page [Gurobi for Academics and Researchers](https://www.gurobi.com/academia/academic-program-and-licenses/):
+   page [Gurobi for Academics and Researchers](https://www.gurobi.com/academia/academic-program-and-licenses/).
 
 2. Clone our repository:
 
