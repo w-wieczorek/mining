@@ -5,7 +5,7 @@ trees from csv databases.  Please read and cite the following article:
 
 W. Wieczorek et al.: Minimum query set for decision tree construction, 2022.
 
-Our program uses [Gurobi Optimizer](https://www.gurobi.com/products/gurobi-optimizer/),
+Our program uses [Gurobi Optimizer](https://www.gurobi.com/products/gurobi-optimizer/), at least 9.1.2,
 which is a powerful mathematical programming solver available for LP and MIP problems
 (free for academic purposes).
 
@@ -24,7 +24,7 @@ tested the program under [Ubuntu 20.04.3 LTS](https://ubuntu.com/) operating sys
    ```
 
 3. Find the source file `mining.cr` and change the first line by puting there
-   a correct path to `libgurobi91.so` file.
+   a correct path (for linux version - gurobi912/linux64/lib) to `libgurobi91.so` file.
 
 4. Build and run the code:
 
