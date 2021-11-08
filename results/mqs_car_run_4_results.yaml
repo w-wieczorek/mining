@@ -1,0 +1,26 @@
+---
+method: MQS
+database: car
+confusion matrix:
+- - 91
+  - 9
+  - 7
+  - 5
+- - 4
+  - 13
+  - 0
+  - 0
+- - 11
+  - 2
+  - 351
+  - 0
+- - 3
+  - 0
+  - 0
+  - 23
+tree:
+  size: 297
+  height: 14
+  serialization: mqs_car_run_4_tree.json
+time of experiment: 2021-11-08 21:51:53 UTC
+cpu time: 176.987048663

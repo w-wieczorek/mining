@@ -1,0 +1,14 @@
+---
+method: MQS
+database: SomervilleHappinessSurvey2015
+confusion matrix:
+- - 11
+  - 14
+- - 3
+  - 12
+tree:
+  size: 71
+  height: 7
+  serialization: mqs_SomervilleHappinessSurvey2015_run_25_tree.json
+time of experiment: 2021-11-08 22:37:34 UTC
+cpu time: 2.498463648

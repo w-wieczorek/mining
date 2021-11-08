@@ -1,0 +1,19 @@
+---
+method: MQS
+database: balance-scale
+confusion matrix:
+- - 0
+  - 7
+  - 3
+- - 5
+  - 65
+  - 6
+- - 11
+  - 14
+  - 77
+tree:
+  size: 241
+  height: 14
+  serialization: mqs_balance-scale_run_30_tree.json
+time of experiment: 2021-11-08 21:39:56 UTC
+cpu time: 106.413801897
