@@ -3,7 +3,7 @@
 This is the implementation of an algorithm for the genaration of decision
 trees from csv databases.  Please read and cite the following article:
 
-Wieczorek, W.; Kozak, J.;Strak, Ł.; Nowakowski, A. Minimumquery set for decision
+Wieczorek, W.; Kozak, J.; Strąk, Ł.; Nowakowski, A. Minimumquery set for decision
 tree construction, Entropy 2022.
 
 Our program uses [Gurobi Optimizer](https://www.gurobi.com/products/gurobi-optimizer/), at least 9.1.2,
